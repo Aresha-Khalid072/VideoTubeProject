@@ -6,7 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 
 const registerUser = asyncHandler(async (req, res) => {
     const { fullName, email, username, password } = req.body
-    console.log("Email: ", email)
+    // console.log("Email: ", email)
 
     if (
         [fullName, email, username, password].some((field) => field?.trim() === "")
@@ -22,6 +22,8 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(409, "User with email or username already exists")
     }
 
+    // console.log(req.files)
+
     const avatarLocalPath = req.files?.avatar?.[0]?.path
 
     let coverImageLocalPath
@@ -35,6 +37,8 @@ const registerUser = asyncHandler(async (req, res) => {
 
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+
+
 
     if (!avatar) {
         throw new ApiError(400, "Avatar file is required")
