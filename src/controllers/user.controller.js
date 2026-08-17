@@ -17,6 +17,7 @@ const generateAccessAndRefreshTokens= async(userId)=>{
      return {accessToken, refreshToken}
         
     } catch (error) {
+         console.log("TOKEN ERROR: ", error) 
         throw new ApiError(500,"Something went wrong while generating and accessing refresh token")
     }
 
@@ -99,7 +100,7 @@ const loginUser = asyncHandler(async(req,res)=>{
 
     const {email,username,password} = req.body
 
-    if(!username || !email){
+    if(!username && !email){
         throw new ApiError (400," username or email is required")
     }
 
