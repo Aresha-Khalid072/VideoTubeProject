@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { ApiError } from "../utils/ApiError.js"
 import { User } from "../models/user.model.js"
-import { uploadOnCloudinary } from "../utils/cloudinary.js"
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import jwt  from "jsonwebtoken"
 import mongoose from "mongoose"
@@ -150,8 +150,8 @@ const logOutUser =asyncHandler(async(req,res)=>{
 
 await    User.findByIdAndUpdate(
         req.user._id,{
-            $set:{
-                refreshToken: undefined
+            $unset:{
+                refreshToken: 1
             }
         },
         {
@@ -284,10 +284,11 @@ const updateUserAvatar = asyncHandler(async(req,res)=>{
     throw new ApiError (400, "Avatar file is missing")
   }
 
-  //TO do delete old image -assignment
+  // purani avatar image ka url nikal lete hain, upload se pehle
+  const oldAvatarUrl = req.user?.avatar
 
   const avatar = await uploadOnCloudinary(avatarLocalPath)
-  if(!avatar.url){
+  if(!avatar?.url){
      throw new ApiError (400, "Error while uploading on Avatar")
   }
 
@@ -299,6 +300,11 @@ const updateUserAvatar = asyncHandler(async(req,res)=>{
     },
     {new: true}
   ).select("-password")
+
+  // naya upload successful hone ke baad purani avatar image delete kar dete hain
+  if (oldAvatarUrl) {
+    await deleteFromCloudinary(oldAvatarUrl)
+  }
 
   return res
   .status(200)
@@ -315,9 +321,12 @@ const updateUserCoverImage = asyncHandler(async(req,res)=>{
     throw new ApiError (400, "Cover file is missing")
   }
 
+  // purani cover image ka url nikal lete hain, upload se pehle
+  const oldCoverImageUrl = req.user?.coverImage
+
   const coverImage = await uploadOnCloudinary(coverImageLocalPath)
-  if(!coverImage.url){
-     throw new ApiError (400, "Error while uploading on Avatar")
+  if(!coverImage?.url){
+     throw new ApiError (400, "Error while uploading on Cover Image")
   }
 
   const user = await User.findByIdAndUpdate(
@@ -329,8 +338,10 @@ const updateUserCoverImage = asyncHandler(async(req,res)=>{
     {new: true}
   ).select("-password")
 
-
-
+  // naya upload successful hone ke baad purani cover image delete kar dete hain
+  if (oldCoverImageUrl) {
+    await deleteFromCloudinary(oldCoverImageUrl)
+  }
 
 
   return res
